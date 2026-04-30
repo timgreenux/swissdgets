@@ -80,6 +80,7 @@
       </div>
 
       <aside class="sidebar">
+        <div class="sidebar__scroll">
         <h1 class="sidebar__title">Swissdgets</h1>
         <p class="sidebar__subtitle">Pattern generator inspired by the mark.</p>
 
@@ -116,56 +117,48 @@
           ></button>
         </div>
 
-        <div class="control">
-          <span class="control__label">Blocks across each row</span>
-          <div class="control__row">
-            <input
-              id="ctrl-shapes-per-row-grid"
-              type="range"
-              min="1"
-              max="10"
-              step="1"
-              data-disable-when-bento=""
-            />
-            <span id="ctrl-shapes-per-row-grid-val" class="control__value"></span>
-          </div>
-        </div>
-        <div class="control">
-          <span class="control__label">Blocks down each column</span>
-          <div class="control__row">
-            <input
-              id="ctrl-shapes-per-col-grid"
-              type="range"
-              min="1"
-              max="10"
-              step="1"
-              data-disable-when-bento=""
-            />
-            <span id="ctrl-shapes-per-col-grid-val" class="control__value"></span>
+        <div class="control-group" id="group-grid-only">
+          <div class="control-group__inner">
+            <div class="control">
+              <span class="control__label">Blocks across each row</span>
+              <div class="control__row">
+                <input id="ctrl-shapes-per-row-grid" type="range" min="1" max="10" step="1" />
+                <span id="ctrl-shapes-per-row-grid-val" class="control__value"></span>
+              </div>
+            </div>
+            <div class="control">
+              <span class="control__label">Blocks down each column</span>
+              <div class="control__row">
+                <input id="ctrl-shapes-per-col-grid" type="range" min="1" max="10" step="1" />
+                <span id="ctrl-shapes-per-col-grid-val" class="control__value"></span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="control">
-          <span class="control__label">Max tile span</span>
-          <div class="control__row">
-            <input id="ctrl-maxspan" type="range" min="1" max="5" step="1" data-disable-when-grid="" />
-            <span id="ctrl-maxspan-val" class="control__value"></span>
-          </div>
-        </div>
-
-        <div class="control">
-          <span class="control__label">Min tile span</span>
-          <div class="control__row">
-            <input id="ctrl-minspan" type="range" min="1" max="5" step="1" data-disable-when-grid="" />
-            <span id="ctrl-minspan-val" class="control__value"></span>
-          </div>
-        </div>
-
-        <div class="control">
-          <span class="control__label">Size variance</span>
-          <div class="control__row">
-            <input id="ctrl-variance" type="range" min="0" max="100" step="1" data-disable-when-grid="" />
-            <span id="ctrl-variance-val" class="control__value"></span>
+        <div class="control-group" id="group-bento-only">
+          <div class="control-group__inner">
+            <div class="control">
+              <span class="control__label">Max tile span</span>
+              <div class="control__row">
+                <input id="ctrl-maxspan" type="range" min="1" max="5" step="1" />
+                <span id="ctrl-maxspan-val" class="control__value"></span>
+              </div>
+            </div>
+            <div class="control">
+              <span class="control__label">Min tile span</span>
+              <div class="control__row">
+                <input id="ctrl-minspan" type="range" min="1" max="5" step="1" />
+                <span id="ctrl-minspan-val" class="control__value"></span>
+              </div>
+            </div>
+            <div class="control">
+              <span class="control__label">Size variance</span>
+              <div class="control__row">
+                <input id="ctrl-variance" type="range" min="0" max="100" step="1" />
+                <span id="ctrl-variance-val" class="control__value"></span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -238,8 +231,9 @@
             </div>
           </div>
         </details>
+        </div><!-- end sidebar__scroll -->
 
-        <div class="btn-row">
+        <div class="sidebar__footer">
           <button type="button" id="btn-shuffle">Randomize layout</button>
           <button type="button" id="btn-reshuffle-shapes" class="secondary">New seed</button>
         </div>

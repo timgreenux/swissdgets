@@ -461,11 +461,29 @@ body {
 }
 
 .sidebar {
-  padding: 20px 18px 28px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar__scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 20px 18px 8px;
   display: flex;
   flex-direction: column;
   gap: 18px;
-  overflow-y: auto;
+  min-height: 0;
+}
+
+.sidebar__footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 18px 20px;
+  background: var(--bg);
+  border-top: 1px solid var(--hairline);
 }
 
 .sidebar__title {
@@ -583,11 +601,13 @@ body {
 }
 
 .toggle.toggle--on {
-  background: rgba(255, 122, 172, 0.35);
+  background: var(--ink);
+  border-color: var(--ink);
 }
 
 .toggle.toggle--on::after {
   left: calc(100% - 4px - var(--range-thumb-size));
+  background: var(--bg);
 }
 
 .toggle:focus-visible {
@@ -595,8 +615,38 @@ body {
   outline-offset: 2px;
 }
 
-.control--muted {
-  opacity: 0.45;
+/* Animated show/hide: outer wrapper is display:grid so grid-template-rows animates height,
+   collapsing the gap and all inner controls together. */
+.control-group {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  overflow: hidden;
+  transition: grid-template-rows 0.28s ease, opacity 0.2s ease;
+}
+
+.control-group__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 0;
+}
+
+.control-group--hidden {
+  grid-template-rows: 0fr !important;
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+/* When the grid-only group is hidden, pull the bento-only group up to close the dead gap */
+#group-grid-only.control-group--hidden + #group-bento-only {
+  margin-top: -10px;
+  transition: margin-top 0.28s ease;
+}
+
+#group-grid-only:not(.control-group--hidden) + #group-bento-only {
+  margin-top: 0;
+  transition: margin-top 0.28s ease;
 }
 
 .control {
@@ -722,11 +772,7 @@ select {
   background-position: calc(100% - 22px) 50%;
 }
 
-.btn-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
+/* .btn-row replaced by .sidebar__footer (pinned on desktop, inline on mobile) */
 
 button {
   font: inherit;
@@ -771,5 +817,20 @@ button:hover {
 
   .canvas {
     height: 48vh;
+  }
+
+  /* On mobile the sidebar scrolls as a whole; footer flows naturally at bottom of content */
+  .sidebar {
+    overflow: visible;
+  }
+
+  .sidebar__scroll {
+    overflow-y: visible;
+    padding-bottom: 0;
+  }
+
+  .sidebar__footer {
+    border-top: none;
+    padding-top: 4px;
   }
 }

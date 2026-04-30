@@ -381,16 +381,11 @@ function refreshLayoutModeUI() {
     gridBtn.setAttribute("aria-checked", String(state.layoutGridMode));
     gridBtn.classList.toggle("toggle--on", state.layoutGridMode);
   }
-  document.querySelectorAll("[data-disable-when-grid]").forEach((el) => {
-    const on = state.layoutGridMode;
-    el.disabled = on;
-    el.closest(".control")?.classList.toggle("control--muted", on);
-  });
-  document.querySelectorAll("[data-disable-when-bento]").forEach((el) => {
-    const on = !state.layoutGridMode;
-    el.disabled = on;
-    el.closest(".control")?.classList.toggle("control--muted", on);
-  });
+  /* grid-only = shown when layoutGridMode is ON; bento-only = shown when OFF */
+  document.getElementById("group-grid-only")
+    ?.classList.toggle("control-group--hidden", !state.layoutGridMode);
+  document.getElementById("group-bento-only")
+    ?.classList.toggle("control-group--hidden", state.layoutGridMode);
 }
 
 function bindColorInput(id, key) {
