@@ -1,3 +1,10 @@
+<!-- Path geometry mirrored in app.js (TRIANGLE_PATH_D); stroke comes from CSS. -->
 <svg width="95" height="103" viewBox="0 0 95 103" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M81 37.6212C91.6667 43.7797 91.6667 59.1757 81 65.3341L30 94.7785C19.3334 100.937 6.00031 93.2395 6 80.923L6 22.0324C6.00033 9.71583 19.3335 2.01858 30 8.17691L81 37.6212Z" stroke="#121117" stroke-width="12"/>
+  <path
+    id="swissdgets-triangle"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="12"
+    d="M81 37.6212C91.6667 43.7797 91.6667 59.1757 81 65.3341L30 94.7785C19.3334 100.937 6.00031 93.2395 6 80.923L6 22.0324C6.00033 9.71583 19.3335 2.01858 30 8.17691L81 37.6212Z"
+  />
 </svg>

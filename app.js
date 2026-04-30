@@ -43,7 +43,7 @@ function normalizeHex(hex) {
 }
 
 function syncCssColors() {
-  document.documentElement.style.setProperty("--ink", normalizeHex(state.shapeColor));
+  document.documentElement.style.setProperty("--shape-ink", normalizeHex(state.shapeColor));
   document.documentElement.style.setProperty("--accent", normalizeHex(state.accentColor));
 }
 
@@ -53,12 +53,32 @@ const SHAPE_MODES = [
   { value: "pill", label: "Pill" },
   { value: "circle", label: "Circle" },
   { value: "circle-outline", label: "Circle (outline)" },
+  { value: "triangle", label: "Triangle (outline)" },
   { value: "semicircle", label: "Semicircle (random dir)" },
   { value: "frame", label: "Outline frame" },
   { value: "dot", label: "Dot (logo anchor)" },
 ];
 
 const SEM_KEYS = ["semicircle-n", "semicircle-s", "semicircle-e", "semicircle-w"];
+
+/** Rounded triangle from `triangle.svg` — keep `d` in sync with that file. */
+const TRIANGLE_PATH_D =
+  "M81 37.6212C91.6667 43.7797 91.6667 59.1757 81 65.3341L30 94.7785C19.3334 100.937 6.00031 93.2395 6 80.923L6 22.0324C6.00033 9.71583 19.3335 2.01858 30 8.17691L81 37.6212Z";
+
+const MIX_SHAPE_POOL = [
+  "rect",
+  "rect",
+  "pill",
+  "circle",
+  "circle",
+  "circle-outline",
+  ...SEM_KEYS,
+  "frame",
+  "triangle",
+  "dot",
+];
+
+const MIX_SHAPE_POOL_NO_TRIANGLE = MIX_SHAPE_POOL.filter((s) => s !== "triangle");
 
 function mulberry32(a) {
   return function () {
@@ -100,20 +120,25 @@ function generateGridLayout(cols, rows, shapesAcross, shapesDown) {
   return blocks;
 }
 
-function pickShape(rng, mode) {
+function pickFromMixPool(rng) {
+  return MIX_SHAPE_POOL[Math.floor(rng() * MIX_SHAPE_POOL.length)];
+}
+
+function pickNonTriangleMixShape(rng) {
+  const pool = MIX_SHAPE_POOL_NO_TRIANGLE;
+  return pool[Math.floor(rng() * pool.length)];
+}
+
+/** Triangle only allowed on square blocks (1×1, 2×2, … cells); never on rectangles like 1×4. */
+function pickShapeForBlock(rng, mode, block) {
+  const square = block.w === block.h;
   if (mode === "mix") {
-    const pool = [
-      "rect",
-      "rect",
-      "pill",
-      "circle",
-      "circle",
-      "circle-outline",
-      ...SEM_KEYS,
-      "frame",
-      "dot",
-    ];
-    return pool[Math.floor(rng() * pool.length)];
+    let shape = pickFromMixPool(rng);
+    if (shape === "triangle" && !square) shape = pickNonTriangleMixShape(rng);
+    return shape;
+  }
+  if (mode === "triangle") {
+    return square ? "triangle" : "blank";
   }
   if (mode === "semicircle") return SEM_KEYS[Math.floor(rng() * SEM_KEYS.length)];
   return mode;
@@ -186,7 +211,7 @@ function generateBlocks(cols, rows, maxSpan, minSpan, variance, rng) {
 function applyShapesToBlocks() {
   const rng = mulberry32(state.shapeSeed >>> 0);
   for (const b of state.blocks) {
-    b.shape = pickShape(rng, state.shapeMode);
+    b.shape = pickShapeForBlock(rng, state.shapeMode, b);
   }
 }
 
@@ -261,7 +286,7 @@ function render() {
     shell.style.gridRow = `${b.r0 + 1} / span ${b.h}`;
 
     const inner = document.createElement("div");
-    const shape = b.shape || "rect";
+    const shape = b.shape ?? "rect";
     inner.className = "widget";
     inner.dataset.shape = shape;
 
@@ -269,6 +294,21 @@ function render() {
     inner.style.setProperty("--r-tr", `${rTR}px`);
     inner.style.setProperty("--r-br", `${rBR}px`);
     inner.style.setProperty("--r-bl", `${rBL}px`);
+
+    if (shape === "triangle") {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 95 103");
+      svg.setAttribute("class", "widget__triangle-svg");
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      svg.setAttribute("aria-hidden", "true");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", TRIANGLE_PATH_D);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke-linejoin", "round");
+      path.setAttribute("vector-effect", "non-scaling-stroke");
+      svg.appendChild(path);
+      inner.appendChild(svg);
+    }
 
     shell.appendChild(inner);
     frag.appendChild(shell);
