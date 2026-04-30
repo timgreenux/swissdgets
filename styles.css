@@ -370,9 +370,8 @@ body {
 }
 
 /*
- * Triangle: same px stroke as other outlines (non-scaling-stroke).
- * Do NOT use overflow:visible here — it disables the grid min-size clamp and
- * inflates tracks (huge gaps). Inset + hidden keeps stroke inside the cell.
+ * Triangle outline: px stroke like frame / circle-outline; inset avoids grid clip.
+ * Arrow: original filled path from arrow.svg (line weight scales with tile).
  */
 .widget-shell:has(.widget[data-shape="triangle"]) {
   align-items: center;
@@ -382,14 +381,25 @@ body {
   box-sizing: border-box;
 }
 
-.widget[data-shape="triangle"] {
+.widget-shell:has(.widget[data-shape="arrow"]) {
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.widget[data-shape="triangle"],
+.widget[data-shape="arrow"] {
   background: transparent !important;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0;
 }
 
-.widget[data-shape="triangle"] .widget__triangle-svg {
+.widget[data-shape="triangle"] .widget__outline-svg,
+.widget[data-shape="arrow"] .widget__outline-svg {
   flex: 1 1 auto;
   width: 100%;
   height: 100%;
@@ -400,12 +410,18 @@ body {
   overflow: visible;
 }
 
-.widget[data-shape="triangle"] .widget__triangle-svg path {
+.widget[data-shape="triangle"] .widget__outline-svg path {
   fill: none;
   stroke: var(--shape-ink);
   stroke-width: var(--outline-ring);
   stroke-linejoin: round;
+  stroke-linecap: round;
   vector-effect: non-scaling-stroke;
+}
+
+.widget[data-shape="arrow"] .widget__outline-svg path {
+  fill: var(--shape-ink);
+  stroke: none;
 }
 
 /* Triangle mode: non-square tiles stay empty (no fallback shape) */
@@ -420,7 +436,7 @@ body {
 
 /* Selected tile: accent fill (ring shapes use mask) */
 .widget-shell--selected
-  .widget:not([data-shape="frame"]):not([data-shape="circle-outline"]):not([data-shape="triangle"]):not([data-shape="blank"]) {
+  .widget:not([data-shape="frame"]):not([data-shape="circle-outline"]):not([data-shape="triangle"]):not([data-shape="arrow"]):not([data-shape="blank"]) {
   background: var(--accent);
 }
 
@@ -429,14 +445,19 @@ body {
   background: var(--accent);
 }
 
-.widget-shell--selected .widget[data-shape="triangle"] {
+.widget-shell--selected .widget[data-shape="triangle"],
+.widget-shell--selected .widget[data-shape="arrow"] {
   background: transparent !important;
 }
 
-.widget-shell--selected .widget[data-shape="triangle"] .widget__triangle-svg path {
+.widget-shell--selected .widget[data-shape="triangle"] .widget__outline-svg path {
   stroke: var(--accent);
   stroke-width: var(--outline-ring);
   vector-effect: non-scaling-stroke;
+}
+
+.widget-shell--selected .widget[data-shape="arrow"] .widget__outline-svg path {
+  fill: var(--accent);
 }
 
 .sidebar {

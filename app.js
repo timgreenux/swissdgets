@@ -54,6 +54,7 @@ const SHAPE_MODES = [
   { value: "circle", label: "Circle" },
   { value: "circle-outline", label: "Circle (outline)" },
   { value: "triangle", label: "Triangle (outline)" },
+  { value: "arrow", label: "Arrow (filled)" },
   { value: "semicircle", label: "Semicircle (random dir)" },
   { value: "frame", label: "Outline frame" },
   { value: "dot", label: "Dot (logo anchor)" },
@@ -64,6 +65,13 @@ const SEM_KEYS = ["semicircle-n", "semicircle-s", "semicircle-e", "semicircle-w"
 /** Rounded triangle from `triangle.svg` — keep `d` in sync with that file. */
 const TRIANGLE_PATH_D =
   "M81 37.6212C91.6667 43.7797 91.6667 59.1757 81 65.3341L30 94.7785C19.3334 100.937 6.00031 93.2395 6 80.923L6 22.0324C6.00033 9.71583 19.3335 2.01858 30 8.17691L81 37.6212Z";
+
+/** Original filled arrow from `arrow.svg` — keep `d` in sync with that file. */
+const ARROW_PATH_D =
+  "M202.913 0.00488281V202.894L161.21 202.911L161.231 71.9531L32.0156 200.521C22.2494 191.025 12.1568 180.695 2.44141 170.874L132.411 40.8271L0.0126953 41.7363L0 0L202.913 0.00488281Z";
+
+/** Shapes that only work on square blocks (1×1, 2×2, …). */
+const SQUARE_ONLY_SHAPES = new Set(["triangle", "arrow"]);
 
 const MIX_SHAPE_POOL = [
   "rect",
@@ -76,10 +84,11 @@ const MIX_SHAPE_POOL = [
   "frame",
   "triangle",
   "triangle",
+  "arrow",
   "dot",
 ];
 
-const MIX_SHAPE_POOL_NO_TRIANGLE = MIX_SHAPE_POOL.filter((s) => s !== "triangle");
+const MIX_SHAPE_POOL_NO_SQUARE_ONLY = MIX_SHAPE_POOL.filter((s) => !SQUARE_ONLY_SHAPES.has(s));
 
 function mulberry32(a) {
   return function () {
@@ -125,21 +134,23 @@ function pickFromMixPool(rng) {
   return MIX_SHAPE_POOL[Math.floor(rng() * MIX_SHAPE_POOL.length)];
 }
 
-function pickNonTriangleMixShape(rng) {
-  const pool = MIX_SHAPE_POOL_NO_TRIANGLE;
+function pickNonSquareOnlyMixShape(rng) {
+  const pool = MIX_SHAPE_POOL_NO_SQUARE_ONLY;
   return pool[Math.floor(rng() * pool.length)];
 }
 
-/** Triangle only allowed on square blocks (1×1, 2×2, … cells); never on rectangles like 1×4. */
+/** Triangle / arrow only on square blocks (1×1, 2×2, …); never on rectangles like 1×4. */
 function pickShapeForBlock(rng, mode, block) {
   const square = block.w === block.h;
   if (mode === "mix") {
-    /* Draw from no-triangle pool on non-square tiles so triangle rolls aren’t wasted */
     if (square) return pickFromMixPool(rng);
-    return pickNonTriangleMixShape(rng);
+    return pickNonSquareOnlyMixShape(rng);
   }
   if (mode === "triangle") {
     return square ? "triangle" : "blank";
+  }
+  if (mode === "arrow") {
+    return square ? "arrow" : "blank";
   }
   if (mode === "semicircle") return SEM_KEYS[Math.floor(rng() * SEM_KEYS.length)];
   return mode;
@@ -299,7 +310,7 @@ function render() {
     if (shape === "triangle") {
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       svg.setAttribute("viewBox", "0 0 95 103");
-      svg.setAttribute("class", "widget__triangle-svg");
+      svg.setAttribute("class", "widget__outline-svg");
       svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
       svg.setAttribute("aria-hidden", "true");
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -307,6 +318,16 @@ function render() {
       path.setAttribute("fill", "none");
       path.setAttribute("stroke-linejoin", "round");
       path.setAttribute("vector-effect", "non-scaling-stroke");
+      svg.appendChild(path);
+      inner.appendChild(svg);
+    } else if (shape === "arrow") {
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.setAttribute("viewBox", "0 0 203 203");
+      svg.setAttribute("class", "widget__outline-svg");
+      svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+      svg.setAttribute("aria-hidden", "true");
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", ARROW_PATH_D);
       svg.appendChild(path);
       inner.appendChild(svg);
     }

@@ -1,0 +1,8 @@
+<!-- Path `d` mirrored in app.js (ARROW_PATH_D). -->
+<svg width="203" height="203" viewBox="0 0 203 203" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    id="swissdgets-arrow"
+    fill="currentColor"
+    d="M202.913 0.00488281V202.894L161.21 202.911L161.231 71.9531L32.0156 200.521C22.2494 191.025 12.1568 180.695 2.44141 170.874L132.411 40.8271L0.0126953 41.7363L0 0L202.913 0.00488281Z"
+  />
+</svg>
