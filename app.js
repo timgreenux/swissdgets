@@ -27,6 +27,7 @@ const state = {
   canvasBg: "#ffffff",
   shapeColor: "#221f20",
   accentColor: "#ff7aac",
+  gifFrameDuration: 1,
 };
 
 function normalizeHex(hex) {
@@ -511,6 +512,94 @@ async function exportPatternPng() {
   }
 }
 
+const GIF_FRAMES = 4;
+
+async function exportPatternGif() {
+  const toggle = document.getElementById("btn-export-toggle");
+  const saveGif = document.getElementById("btn-export-gif");
+  const savePng = document.getElementById("btn-export-save");
+  const el = document.getElementById("canvas");
+  const h2c = window.html2canvas;
+
+  if (!el || typeof h2c !== "function") {
+    window.alert("Could not load the export library. Check your network connection and reload.");
+    return;
+  }
+  if (typeof window.GIF !== "function") {
+    window.alert("GIF library failed to load. Check your network connection and reload.");
+    return;
+  }
+
+  const delay = Math.round(state.gifFrameDuration * 1000);
+  const scale = Math.max(1, Math.min(4, Math.round(state.exportScale)));
+
+  if (toggle) { toggle.disabled = true; toggle.setAttribute("aria-busy", "true"); }
+  if (saveGif) { saveGif.disabled = true; saveGif.textContent = "Generating…"; }
+  if (savePng) savePng.disabled = true;
+
+  // Stash seeds so we can restore them after export
+  const savedLayoutSeed = state.layoutSeed;
+  const savedShapeSeed = state.shapeSeed;
+  const savedBlocks = state.blocks.map((b) => ({ ...b }));
+
+  try {
+    const gif = new window.GIF({
+      workers: 2,
+      quality: 8,
+      repeat: 0,
+      workerScript: "gif.worker.js",
+    });
+
+    for (let i = 0; i < GIF_FRAMES; i++) {
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const frame = await h2c(el, {
+        backgroundColor: normalizeHex(state.canvasBg),
+        scale,
+        logging: false,
+        useCORS: true,
+        onclone(clonedDoc) { rewriteMaskRingsForExport(clonedDoc); },
+      });
+      gif.addFrame(frame, { delay, copy: true });
+
+      // Advance to a new seed for the next frame
+      if (i < GIF_FRAMES - 1) {
+        state.layoutSeed = (Math.random() * 0xffffffff) >>> 0;
+        state.shapeSeed  = (Math.random() * 0xffffffff) >>> 0;
+        rebuildLayout();
+        render();
+      }
+    }
+
+    gif.on("finished", (blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "swissdgets.gif";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    });
+
+    gif.render();
+  } catch (e) {
+    console.warn(e);
+    window.alert("GIF export failed. Try a lower PNG scale or check console for details.");
+  } finally {
+    // Restore original state
+    state.layoutSeed = savedLayoutSeed;
+    state.shapeSeed  = savedShapeSeed;
+    state.blocks = savedBlocks;
+    render();
+
+    closeExportPopover();
+    if (toggle) { toggle.disabled = false; toggle.removeAttribute("aria-busy"); }
+    if (saveGif) { saveGif.disabled = false; saveGif.textContent = "Save GIF"; }
+    if (savePng) savePng.disabled = false;
+  }
+}
+
 function bindControls() {
   const bindRange = (id, key, { onInput, displaySuffix = "" } = {}) => {
     const el = document.getElementById(id);
@@ -696,6 +785,22 @@ function bindControls() {
     syncScale();
   }
 
+  const gifDurRange = document.getElementById("export-gif-dur-range");
+  const gifDurVal = document.getElementById("export-gif-dur-val");
+  if (gifDurRange) {
+    const formatDur = (v) => {
+      const s = v * 0.25;
+      return s === Math.floor(s) ? `${s}s` : `${s.toFixed(2).replace(/0+$/, "")}s`;
+    };
+    const syncGifDur = () => {
+      state.gifFrameDuration = Number(gifDurRange.value) * 0.25;
+      if (gifDurVal) gifDurVal.textContent = formatDur(Number(gifDurRange.value));
+    };
+    gifDurRange.addEventListener("input", syncGifDur);
+    gifDurRange.value = String(Math.round(state.gifFrameDuration / 0.25));
+    syncGifDur();
+  }
+
   exportToggle?.addEventListener("click", (e) => {
     e.stopPropagation();
     if (!exportPop || !exportToggle) return;
@@ -710,6 +815,11 @@ function bindControls() {
   document.getElementById("btn-export-save")?.addEventListener("click", (e) => {
     e.stopPropagation();
     exportPatternPng();
+  });
+
+  document.getElementById("btn-export-gif")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    exportPatternGif();
   });
 
   document.addEventListener("click", (e) => {

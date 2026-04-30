@@ -159,6 +159,12 @@ body {
   color: var(--ink);
 }
 
+.export-popover__divider {
+  border: none;
+  border-top: 1px solid var(--hairline);
+  margin: 2px 0;
+}
+
 .export-popover__save {
   width: 100%;
   margin: 0;
@@ -170,6 +176,11 @@ body {
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.export-popover__save--secondary {
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .export-popover__save:hover:not(:disabled) {

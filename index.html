@@ -53,8 +53,8 @@
                 <line x1="12" y1="2" x2="12" y2="15" />
               </svg>
             </button>
-            <div id="export-popover" class="export-popover" hidden role="dialog" aria-label="Export PNG">
-              <label class="export-popover__label" for="export-scale-range">Export scale</label>
+            <div id="export-popover" class="export-popover" hidden role="dialog" aria-label="Export">
+              <label class="export-popover__label" for="export-scale-range">PNG scale</label>
               <div class="export-popover__row">
                 <input
                   id="export-scale-range"
@@ -69,6 +69,24 @@
               </div>
               <button type="button" class="export-popover__save" id="btn-export-save">
                 Save PNG
+              </button>
+
+              <hr class="export-popover__divider" />
+
+              <label class="export-popover__label" for="export-gif-dur-range">GIF frame duration</label>
+              <div class="export-popover__row">
+                <input
+                  id="export-gif-dur-range"
+                  type="range"
+                  min="1"
+                  max="8"
+                  step="1"
+                  value="4"
+                />
+                <span id="export-gif-dur-val" class="export-popover__scale-val">1s</span>
+              </div>
+              <button type="button" class="export-popover__save export-popover__save--secondary" id="btn-export-gif">
+                Save GIF
               </button>
             </div>
           </div>
@@ -244,6 +262,7 @@
       src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"
       crossorigin="anonymous"
     ></script>
+    <script src="gif.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
