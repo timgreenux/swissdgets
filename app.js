@@ -59,7 +59,7 @@ const SHAPE_MODES = [
   { value: "arrow", label: "Arrow (filled)" },
   { value: "semicircle", label: "Semicircle (random dir)" },
   { value: "frame", label: "Outline frame" },
-  { value: "dot", label: "Dot (logo anchor)" },
+  { value: "dot", label: "Dot" },
 ];
 
 const SEM_KEYS = ["semicircle-n", "semicircle-s", "semicircle-e", "semicircle-w"];
