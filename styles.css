@@ -4,6 +4,8 @@
   --muted: #6b6668;
   --hairline: rgba(34, 31, 32, 0.18);
   --accent: #ff7aac;
+  /* Outline frame + circle (outline) ring thickness */
+  --outline-ring: clamp(4px, 1.65vmin, 12px);
   --sidebar-w: min(320px, 32vw);
   --header-h: 56px;
   /* Toggle thumb = range thumb (18px); track 2px slim bar */
@@ -250,6 +252,34 @@ body {
   max-height: 100%;
 }
 
+.widget-shell:has(.widget[data-shape="circle-outline"]) {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ring circle: same mask + padding as outline frame */
+.widget[data-shape="circle-outline"] {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  max-width: 100%;
+  max-height: 100%;
+  background: var(--ink);
+  padding: var(--outline-ring);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  -webkit-mask-clip: content-box, border-box;
+  -webkit-mask-repeat: no-repeat;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  mask-clip: content-box, border-box;
+  mask-repeat: no-repeat;
+}
+
 /* Semicircles / arches: fixed 2:1 or 1:2 box so the arc stays circular */
 .widget-shell:has(.widget[data-shape="semicircle-n"]) {
   align-items: flex-end;
@@ -316,7 +346,7 @@ body {
   box-sizing: border-box;
   border: none;
   background: var(--ink);
-  padding: clamp(4px, 1.65vmin, 12px);
+  padding: var(--outline-ring);
   border-radius: var(--r-tl) var(--r-tr) var(--r-br) var(--r-bl);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -336,12 +366,13 @@ body {
   height: min(28cqw, 28cqh, 40px);
 }
 
-/* Selected tile: accent fill (frame uses ring mask) */
-.widget-shell--selected .widget:not([data-shape="frame"]) {
+/* Selected tile: accent fill (ring shapes use mask) */
+.widget-shell--selected .widget:not([data-shape="frame"]):not([data-shape="circle-outline"]) {
   background: var(--accent);
 }
 
-.widget-shell--selected .widget[data-shape="frame"] {
+.widget-shell--selected .widget[data-shape="frame"],
+.widget-shell--selected .widget[data-shape="circle-outline"] {
   background: var(--accent);
 }
 
