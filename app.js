@@ -533,6 +533,22 @@ async function exportPatternGif() {
   const delay = Math.round(state.gifFrameDuration * 1000);
   const scale = Math.max(1, Math.min(4, Math.round(state.exportScale)));
   const totalFrames = Math.max(4, Math.min(24, Math.round(state.gifFrameCount)));
+  const filename = "swissdgets.gif";
+
+  // Get the file handle NOW while we still have the user-gesture / transient
+  // activation. showSaveFilePicker will fail if called after async work.
+  let fileHandle = null;
+  if (window.showSaveFilePicker) {
+    try {
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: filename,
+        types: [{ description: "Animated GIF", accept: { "image/gif": [".gif"] } }],
+      });
+    } catch (err) {
+      if (err.name === "AbortError") return; // user cancelled — do nothing
+      // fall through to auto-download if picker fails for another reason
+    }
+  }
 
   if (toggle) { toggle.disabled = true; toggle.setAttribute("aria-busy", "true"); }
   if (saveGif) { saveGif.disabled = true; saveGif.textContent = "Generating…"; }
@@ -543,22 +559,11 @@ async function exportPatternGif() {
   const savedShapeSeed = state.shapeSeed;
   const savedBlocks = state.blocks.map((b) => ({ ...b }));
 
-  // Freeze the visible canvas with a snapshot overlay so the user
-  // doesn't see the pattern flashing between frames
-  let overlay = null;
-  try {
-    const snapshot = await h2c(el, {
-      backgroundColor: normalizeHex(state.canvasBg),
-      scale: 1,
-      logging: false,
-      useCORS: true,
-      onclone(clonedDoc) { rewriteMaskRingsForExport(clonedDoc); },
-    });
-    overlay = document.createElement("img");
-    overlay.className = "canvas-capture-overlay";
-    overlay.src = snapshot.toDataURL();
-    if (wrap) wrap.appendChild(overlay);
-  } catch (_) { /* overlay is optional — continue without it */ }
+  // White "Loading…" overlay so the user doesn't see frames flashing
+  const overlay = document.createElement("div");
+  overlay.className = "canvas-capture-overlay";
+  overlay.textContent = "Loading…";
+  if (wrap) wrap.appendChild(overlay);
 
   try {
     const gif = new window.GIF({
@@ -585,8 +590,10 @@ async function exportPatternGif() {
       });
       gif.addFrame(frame, { delay, copy: true });
 
-      if (saveGif) saveGif.textContent = `Generating… ${i + 1}/${totalFrames}`;
+      if (saveGif) saveGif.textContent = `${i + 1} / ${totalFrames} frames`;
     }
+
+    if (saveGif) saveGif.textContent = "Encoding…";
 
     const blob = await new Promise((resolve, reject) => {
       gif.on("finished", resolve);
@@ -594,20 +601,10 @@ async function exportPatternGif() {
       gif.render();
     });
 
-    // Save-as dialog with fallback
-    const filename = "swissdgets.gif";
-    if (window.showSaveFilePicker) {
-      try {
-        const handle = await window.showSaveFilePicker({
-          suggestedName: filename,
-          types: [{ description: "Animated GIF", accept: { "image/gif": [".gif"] } }],
-        });
-        const writable = await handle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-      } catch (err) {
-        if (err.name !== "AbortError") throw err;
-      }
+    if (fileHandle) {
+      const writable = await fileHandle.createWritable();
+      await writable.write(blob);
+      await writable.close();
     } else {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -623,7 +620,7 @@ async function exportPatternGif() {
     console.warn(e);
     window.alert("GIF export failed. Try a lower PNG scale or check console for details.");
   } finally {
-    if (overlay) overlay.remove();
+    overlay.remove();
 
     // Restore original state
     state.layoutSeed = savedLayoutSeed;
