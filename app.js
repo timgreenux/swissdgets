@@ -615,14 +615,59 @@ function bindControls() {
     });
   }
 
-  document.getElementById("btn-shuffle")?.addEventListener("click", () => {
+  /** Randomize every setting then rebuild. */
+  function randomizeAll() {
+    const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    const rndR = () => rnd(0, 48);
+
+    state.cols = rnd(3, 10);
+    state.rows = rnd(3, 8);
+    state.gap = rnd(0, 20);
+    state.maxSpan = rnd(1, 4);
+    state.minSpan = rnd(1, state.maxSpan);
+    state.sizeVariance = rnd(0, 100);
+    state.canvasPadding = rnd(0, 32);
+    state.layoutGridMode = Math.random() < 0.3;
+    state.shapesPerRow = rnd(1, state.cols);
+    state.shapesPerCol = rnd(1, state.rows);
+    state.rTL = rndR(); state.rTR = rndR(); state.rBR = rndR(); state.rBL = rndR();
     state.layoutSeed = (Math.random() * 0xffffffff) >>> 0;
-    relayout();
-  });
+    state.shapeSeed  = (Math.random() * 0xffffffff) >>> 0;
+
+    /* Sync all range inputs to new state values */
+    const syncRange = (id, key, suffix = "") => {
+      const el = document.getElementById(id);
+      const out = document.getElementById(`${id}-val`);
+      if (el) el.value = String(state[key]);
+      if (out) out.textContent = `${state[key]}${suffix}`;
+    };
+    syncRange("ctrl-cols", "cols");
+    syncRange("ctrl-rows", "rows");
+    syncRange("ctrl-gap", "gap");
+    syncRange("ctrl-maxspan", "maxSpan");
+    syncRange("ctrl-minspan", "minSpan");
+    syncRange("ctrl-variance", "sizeVariance");
+    syncRange("ctrl-canvas-pad", "canvasPadding", "px");
+    syncRange("ctrl-rtl", "rTL", "px");
+    syncRange("ctrl-rtr", "rTR", "px");
+    syncRange("ctrl-rbr", "rBR", "px");
+    syncRange("ctrl-rbl", "rBL", "px");
+    syncRange("ctrl-shapes-per-row-grid", "shapesPerRow");
+    syncRange("ctrl-shapes-per-col-grid", "shapesPerCol");
+
+    refreshLayoutModeUI();
+    refreshBlockGridSliders();
+    refreshMinSpanSlider();
+    rebuildLayout();
+    render();
+  }
+
+  document.getElementById("btn-shuffle")?.addEventListener("click", randomizeAll);
 
   document.getElementById("btn-reshuffle-shapes")?.addEventListener("click", () => {
-    state.shapeSeed = (Math.random() * 0xffffffff) >>> 0;
-    applyShapesToBlocks();
+    state.layoutSeed = (Math.random() * 0xffffffff) >>> 0;
+    state.shapeSeed  = (Math.random() * 0xffffffff) >>> 0;
+    rebuildLayout();
     render();
   });
 
