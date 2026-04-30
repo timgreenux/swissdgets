@@ -73,7 +73,7 @@
 
               <hr class="export-popover__divider" />
 
-              <label class="export-popover__label" for="export-gif-dur-range">GIF frame duration</label>
+              <label class="export-popover__label" for="export-gif-dur-range">Frame duration</label>
               <div class="export-popover__row">
                 <input
                   id="export-gif-dur-range"
@@ -84,6 +84,18 @@
                   value="4"
                 />
                 <span id="export-gif-dur-val" class="export-popover__scale-val">1s</span>
+              </div>
+              <label class="export-popover__label" for="export-gif-frames-range">Frames</label>
+              <div class="export-popover__row">
+                <input
+                  id="export-gif-frames-range"
+                  type="range"
+                  min="4"
+                  max="24"
+                  step="1"
+                  value="4"
+                />
+                <span id="export-gif-frames-val" class="export-popover__scale-val">4</span>
               </div>
               <button type="button" class="export-popover__save export-popover__save--secondary" id="btn-export-gif">
                 Save GIF

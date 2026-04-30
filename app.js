@@ -28,6 +28,7 @@ const state = {
   shapeColor: "#221f20",
   accentColor: "#ff7aac",
   gifFrameDuration: 1,
+  gifFrameCount: 4,
 };
 
 function normalizeHex(hex) {
@@ -512,13 +513,12 @@ async function exportPatternPng() {
   }
 }
 
-const GIF_FRAMES = 4;
-
 async function exportPatternGif() {
   const toggle = document.getElementById("btn-export-toggle");
   const saveGif = document.getElementById("btn-export-gif");
   const savePng = document.getElementById("btn-export-save");
   const el = document.getElementById("canvas");
+  const wrap = document.querySelector(".canvas-wrap");
   const h2c = window.html2canvas;
 
   if (!el || typeof h2c !== "function") {
@@ -532,6 +532,7 @@ async function exportPatternGif() {
 
   const delay = Math.round(state.gifFrameDuration * 1000);
   const scale = Math.max(1, Math.min(4, Math.round(state.exportScale)));
+  const totalFrames = Math.max(4, Math.min(24, Math.round(state.gifFrameCount)));
 
   if (toggle) { toggle.disabled = true; toggle.setAttribute("aria-busy", "true"); }
   if (saveGif) { saveGif.disabled = true; saveGif.textContent = "Generating…"; }
@@ -542,6 +543,23 @@ async function exportPatternGif() {
   const savedShapeSeed = state.shapeSeed;
   const savedBlocks = state.blocks.map((b) => ({ ...b }));
 
+  // Freeze the visible canvas with a snapshot overlay so the user
+  // doesn't see the pattern flashing between frames
+  let overlay = null;
+  try {
+    const snapshot = await h2c(el, {
+      backgroundColor: normalizeHex(state.canvasBg),
+      scale: 1,
+      logging: false,
+      useCORS: true,
+      onclone(clonedDoc) { rewriteMaskRingsForExport(clonedDoc); },
+    });
+    overlay = document.createElement("img");
+    overlay.className = "canvas-capture-overlay";
+    overlay.src = snapshot.toDataURL();
+    if (wrap) wrap.appendChild(overlay);
+  } catch (_) { /* overlay is optional — continue without it */ }
+
   try {
     const gif = new window.GIF({
       workers: 2,
@@ -550,7 +568,13 @@ async function exportPatternGif() {
       workerScript: "gif.worker.js",
     });
 
-    for (let i = 0; i < GIF_FRAMES; i++) {
+    for (let i = 0; i < totalFrames; i++) {
+      if (i > 0) {
+        state.layoutSeed = (Math.random() * 0xffffffff) >>> 0;
+        state.shapeSeed  = (Math.random() * 0xffffffff) >>> 0;
+        rebuildLayout();
+        render();
+      }
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const frame = await h2c(el, {
         backgroundColor: normalizeHex(state.canvasBg),
@@ -561,32 +585,46 @@ async function exportPatternGif() {
       });
       gif.addFrame(frame, { delay, copy: true });
 
-      // Advance to a new seed for the next frame
-      if (i < GIF_FRAMES - 1) {
-        state.layoutSeed = (Math.random() * 0xffffffff) >>> 0;
-        state.shapeSeed  = (Math.random() * 0xffffffff) >>> 0;
-        rebuildLayout();
-        render();
-      }
+      if (saveGif) saveGif.textContent = `Generating… ${i + 1}/${totalFrames}`;
     }
 
-    gif.on("finished", (blob) => {
+    const blob = await new Promise((resolve, reject) => {
+      gif.on("finished", resolve);
+      gif.on("error", reject);
+      gif.render();
+    });
+
+    // Save-as dialog with fallback
+    const filename = "swissdgets.gif";
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: filename,
+          types: [{ description: "Animated GIF", accept: { "image/gif": [".gif"] } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+      } catch (err) {
+        if (err.name !== "AbortError") throw err;
+      }
+    } else {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "swissdgets.gif";
+      a.download = filename;
       a.rel = "noopener";
       document.body.appendChild(a);
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
-    });
-
-    gif.render();
+    }
   } catch (e) {
     console.warn(e);
     window.alert("GIF export failed. Try a lower PNG scale or check console for details.");
   } finally {
+    if (overlay) overlay.remove();
+
     // Restore original state
     state.layoutSeed = savedLayoutSeed;
     state.shapeSeed  = savedShapeSeed;
@@ -799,6 +837,18 @@ function bindControls() {
     gifDurRange.addEventListener("input", syncGifDur);
     gifDurRange.value = String(Math.round(state.gifFrameDuration / 0.25));
     syncGifDur();
+  }
+
+  const gifFramesRange = document.getElementById("export-gif-frames-range");
+  const gifFramesVal = document.getElementById("export-gif-frames-val");
+  if (gifFramesRange) {
+    const syncGifFrames = () => {
+      state.gifFrameCount = Number(gifFramesRange.value);
+      if (gifFramesVal) gifFramesVal.textContent = String(state.gifFrameCount);
+    };
+    gifFramesRange.addEventListener("input", syncGifFrames);
+    gifFramesRange.value = String(state.gifFrameCount);
+    syncGifFrames();
   }
 
   exportToggle?.addEventListener("click", (e) => {

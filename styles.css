@@ -196,6 +196,17 @@ body {
   flex: 1;
   padding: 16px 20px 24px;
   min-height: 0;
+  position: relative;
+}
+
+.canvas-capture-overlay {
+  position: absolute;
+  inset: 16px 20px 24px;
+  z-index: 20;
+  pointer-events: none;
+  object-fit: cover;
+  width: calc(100% - 40px);
+  height: calc(100% - 40px);
 }
 
 .canvas {
