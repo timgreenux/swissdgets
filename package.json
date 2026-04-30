@@ -1,0 +1,7 @@
+{
+  "name": "swissdgets-playground",
+  "private": true,
+  "scripts": {
+    "dev": "npx --yes serve . -p 5173"
+  }
+}

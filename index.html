@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Swissdgets — Preply widget playground</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div class="main">
+        <header class="header">
+          <a class="header__logo" href="#" aria-label="Preply">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 150" aria-hidden="true">
+              <path
+                fill="currentColor"
+                fill-rule="evenodd"
+                d="M119.03,42.69L69.19,12.31c-16.05-9.78-36.66,1.74-36.66,20.49V118.23c0,17.05,10.05,25.85,22.95,25.85,12.1,0,22.02-9.35,22.89-21.19,11.83-1.24,21.6-11.2,21.06-24.7l21.72-13.24c7.68-4.68,11.53-12.58,11.53-20.49s-2.7-15.73-13.65-21.79h0Zm-63.54,87.81c-5.14,0-9.3-4.15-9.3-9.27s4.16-9.27,9.3-9.27,9.3,4.15,9.3,9.27-4.17,9.27-9.3,9.27Zm30.29-30.92c0,3.5-2.26,9.85-10.63,9.85-.95-1.56-2.08-3.02-3.36-4.31-1.29-1.29-2.73-2.43-4.29-3.4-3.5-2.15-7.61-3.38-12.02-3.38-3.03,0-5.93,.59-8.58,1.65-.23,.09-.5,.2-.72,.31v-20.49c0-5.44,4.42-9.85,9.88-9.85h19.83c5.46,0,9.88,4.41,9.88,9.85v19.77h0Zm28.25-26.21l-14.6,8.9v-2.47c0-12.96-10.54-23.46-23.53-23.46h-19.83c-3.52,0-6.87,.77-9.88,2.17v-25.69c0-8.13,8.92-13.12,15.88-8.88l51.97,31.67c6.66,4.06,6.66,13.7,0,17.76h0Z"
+              />
+            </svg>
+            <span class="header__wordmark">Preply</span>
+          </a>
+          <div class="header__export-wrap">
+            <button
+              type="button"
+              class="header__export"
+              id="btn-export-toggle"
+              aria-label="Export pattern"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-controls="export-popover"
+              title="Export PNG"
+            >
+              <svg
+                class="header__export-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                <polyline points="16 6 12 2 8 6" />
+                <line x1="12" y1="2" x2="12" y2="15" />
+              </svg>
+            </button>
+            <div id="export-popover" class="export-popover" hidden role="dialog" aria-label="Export PNG">
+              <label class="export-popover__label" for="export-scale-range">Export scale</label>
+              <div class="export-popover__row">
+                <input
+                  id="export-scale-range"
+                  type="range"
+                  min="1"
+                  max="4"
+                  step="1"
+                  aria-valuemin="1"
+                  aria-valuemax="4"
+                />
+                <span id="export-scale-val" class="export-popover__scale-val">2×</span>
+              </div>
+              <button type="button" class="export-popover__save" id="btn-export-save">
+                Save PNG
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <div class="canvas-wrap">
+          <div id="canvas" class="canvas" role="img" aria-label="Generated widget mosaic"></div>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <h1 class="sidebar__title">Swissdgets</h1>
+
+        <div class="control">
+          <span class="control__label">Shape</span>
+          <select id="ctrl-shape" aria-label="Widget shape"></select>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Shapes per row (cell columns)</span>
+          <div class="control__row">
+            <input id="ctrl-cols" type="range" min="1" max="10" step="1" />
+            <span id="ctrl-cols-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Shapes per column (cell rows)</span>
+          <div class="control__row">
+            <input id="ctrl-rows" type="range" min="2" max="10" step="1" />
+            <span id="ctrl-rows-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <div class="layout-toggle-row">
+          <span class="layout-toggle-row__label" id="layout-grid-label">Even block grid</span>
+          <button
+            type="button"
+            class="toggle"
+            id="btn-layout-grid"
+            role="switch"
+            aria-checked="false"
+            aria-labelledby="layout-grid-label"
+          ></button>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Blocks across each row</span>
+          <div class="control__row">
+            <input
+              id="ctrl-shapes-per-row-grid"
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              data-disable-when-bento=""
+            />
+            <span id="ctrl-shapes-per-row-grid-val" class="control__value"></span>
+          </div>
+        </div>
+        <div class="control">
+          <span class="control__label">Blocks down each column</span>
+          <div class="control__row">
+            <input
+              id="ctrl-shapes-per-col-grid"
+              type="range"
+              min="1"
+              max="10"
+              step="1"
+              data-disable-when-bento=""
+            />
+            <span id="ctrl-shapes-per-col-grid-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Max tile span</span>
+          <div class="control__row">
+            <input id="ctrl-maxspan" type="range" min="1" max="5" step="1" data-disable-when-grid="" />
+            <span id="ctrl-maxspan-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Min tile span</span>
+          <div class="control__row">
+            <input id="ctrl-minspan" type="range" min="1" max="5" step="1" data-disable-when-grid="" />
+            <span id="ctrl-minspan-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Size variance</span>
+          <div class="control__row">
+            <input id="ctrl-variance" type="range" min="0" max="100" step="1" data-disable-when-grid="" />
+            <span id="ctrl-variance-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Gap (spacing)</span>
+          <div class="control__row">
+            <input id="ctrl-gap" type="range" min="0" max="50" step="1" />
+            <span id="ctrl-gap-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <div class="control">
+          <span class="control__label">Pattern padding</span>
+          <div class="control__row">
+            <input id="ctrl-canvas-pad" type="range" min="0" max="48" step="1" />
+            <span id="ctrl-canvas-pad-val" class="control__value"></span>
+          </div>
+        </div>
+
+        <details class="sidebar-details">
+          <summary class="sidebar-details__summary">Corner Radii</summary>
+          <div class="sidebar-details__body">
+            <p class="sidebar__hint sidebar__hint--tight">
+              Pixels — circular arcs on rectangles and frames; inner hole matches.
+            </p>
+            <div class="corner-grid">
+              <div class="control">
+                <span class="control__label">Top left</span>
+                <div class="control__row">
+                  <input id="ctrl-rtl" type="range" min="0" max="48" step="1" />
+                  <span id="ctrl-rtl-val" class="control__value"></span>
+                </div>
+              </div>
+              <div class="control">
+                <span class="control__label">Top right</span>
+                <div class="control__row">
+                  <input id="ctrl-rtr" type="range" min="0" max="48" step="1" />
+                  <span id="ctrl-rtr-val" class="control__value"></span>
+                </div>
+              </div>
+              <div class="control">
+                <span class="control__label">Bottom left</span>
+                <div class="control__row">
+                  <input id="ctrl-rbl" type="range" min="0" max="48" step="1" />
+                  <span id="ctrl-rbl-val" class="control__value"></span>
+                </div>
+              </div>
+              <div class="control">
+                <span class="control__label">Bottom right</span>
+                <div class="control__row">
+                  <input id="ctrl-rbr" type="range" min="0" max="48" step="1" />
+                  <span id="ctrl-rbr-val" class="control__value"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="sidebar-details">
+          <summary class="sidebar-details__summary">Colour</summary>
+          <div class="sidebar-details__body">
+            <p class="sidebar__hint sidebar__hint--tight">
+              Applies to the pattern only; PNG export is the grid (no header or sidebar).
+            </p>
+            <div class="control control--color">
+              <span class="control__label">Pattern background</span>
+              <input id="ctrl-color-bg" type="color" value="#ffffff" aria-label="Pattern background colour" />
+            </div>
+            <div class="control control--color">
+              <span class="control__label">Shape colour</span>
+              <input id="ctrl-color-ink" type="color" value="#221f20" aria-label="Shape colour" />
+            </div>
+            <div class="control control--color">
+              <span class="control__label">Highlight colour</span>
+              <input id="ctrl-color-accent" type="color" value="#ff7aac" aria-label="Selected tile highlight colour" />
+            </div>
+          </div>
+        </details>
+
+        <div class="btn-row">
+          <button type="button" id="btn-shuffle">Randomize layout</button>
+          <button type="button" id="btn-reshuffle-shapes" class="secondary">New seed</button>
+        </div>
+      </aside>
+    </div>
+
+    <script
+      src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="app.js"></script>
+  </body>
+</html>
