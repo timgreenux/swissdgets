@@ -369,10 +369,17 @@ body {
   height: min(28cqw, 28cqh, 40px);
 }
 
-/* triangle.svg path — stroke width matches outline frame / circle-outline */
+/*
+ * Triangle: same px stroke as other outlines (non-scaling-stroke).
+ * Do NOT use overflow:visible here — it disables the grid min-size clamp and
+ * inflates tracks (huge gaps). Inset + hidden keeps stroke inside the cell.
+ */
 .widget-shell:has(.widget[data-shape="triangle"]) {
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  padding: calc(var(--outline-ring) * 0.55 + 2px);
+  box-sizing: border-box;
 }
 
 .widget[data-shape="triangle"] {
@@ -388,6 +395,8 @@ body {
   height: 100%;
   min-width: 0;
   min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
   overflow: visible;
 }
 
@@ -426,6 +435,8 @@ body {
 
 .widget-shell--selected .widget[data-shape="triangle"] .widget__triangle-svg path {
   stroke: var(--accent);
+  stroke-width: var(--outline-ring);
+  vector-effect: non-scaling-stroke;
 }
 
 .sidebar {

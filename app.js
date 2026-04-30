@@ -75,6 +75,7 @@ const MIX_SHAPE_POOL = [
   ...SEM_KEYS,
   "frame",
   "triangle",
+  "triangle",
   "dot",
 ];
 
@@ -133,9 +134,9 @@ function pickNonTriangleMixShape(rng) {
 function pickShapeForBlock(rng, mode, block) {
   const square = block.w === block.h;
   if (mode === "mix") {
-    let shape = pickFromMixPool(rng);
-    if (shape === "triangle" && !square) shape = pickNonTriangleMixShape(rng);
-    return shape;
+    /* Draw from no-triangle pool on non-square tiles so triangle rolls aren’t wasted */
+    if (square) return pickFromMixPool(rng);
+    return pickNonTriangleMixShape(rng);
   }
   if (mode === "triangle") {
     return square ? "triangle" : "blank";
@@ -394,6 +395,31 @@ function fallbackDownloadPng(blob) {
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
+/**
+ * html2canvas does not rasterize mask-composite rings reliably; redraw them as border rings
+ * on the cloned DOM only (screen UI unchanged).
+ */
+function rewriteMaskRingsForExport(clonedDoc) {
+  const win = clonedDoc.defaultView;
+  if (!win) return;
+  clonedDoc.querySelectorAll('.widget[data-shape="frame"], .widget[data-shape="circle-outline"]').forEach((node) => {
+    const cs = win.getComputedStyle(node);
+    const ring = cs.paddingTop;
+    if (!ring || ring === "0px") return;
+    const color = cs.backgroundColor;
+    node.style.setProperty("-webkit-mask", "none", "important");
+    node.style.setProperty("mask", "none", "important");
+    node.style.setProperty("mask-composite", "none", "important");
+    node.style.setProperty("-webkit-mask-composite", "none", "important");
+    node.style.setProperty("mask-clip", "border-box", "important");
+    node.style.setProperty("-webkit-mask-clip", "border-box", "important");
+    node.style.setProperty("padding", "0", "important");
+    node.style.setProperty("background", "transparent", "important");
+    node.style.setProperty("box-sizing", "border-box", "important");
+    node.style.setProperty("border", `${ring} solid ${color}`, "important");
+  });
+}
+
 async function exportPatternPng() {
   const toggle = document.getElementById("btn-export-toggle");
   const save = document.getElementById("btn-export-save");
@@ -425,6 +451,9 @@ async function exportPatternPng() {
       scale,
       logging: false,
       useCORS: true,
+      onclone(clonedDoc) {
+        rewriteMaskRingsForExport(clonedDoc);
+      },
     });
     const blob = await new Promise((res) => {
       out.toBlob((b) => res(b), "image/png", 1);
